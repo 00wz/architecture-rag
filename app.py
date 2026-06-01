@@ -44,6 +44,11 @@ app = FastAPI(
 class AskRequest(BaseModel):
     query: str = Field(..., description="Вопрос пользователя", examples=["Кто такой Korin Valtaar?"])
     k: int | None = Field(None, description="Сколько чанков извлекать (top-k)")
+    safe: bool = Field(
+        False,
+        description="Включить защиту от prompt-injection (pre-prompt + фильтр "
+                    "вредоносных чанков). По умолчанию выключена.",
+    )
 
 
 class Source(BaseModel):
@@ -58,6 +63,7 @@ class AskResponse(BaseModel):
     question: str
     answer: str
     sources: list[Source]
+    safe_mode: bool
 
 
 @app.get("/health")
@@ -85,7 +91,7 @@ def ask(req: AskRequest):
     if req.k:
         bot.retriever.search_kwargs["k"] = req.k
     try:
-        return bot.ask(req.query)
+        return bot.ask(req.query, safe=req.safe)
     except Exception as e:
         raise HTTPException(500, f"Ошибка генерации: {e}")
 
