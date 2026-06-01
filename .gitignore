@@ -1,2 +1,4 @@
 clean_citations.py
 row_texts/
+.venv/
+__pycache__/

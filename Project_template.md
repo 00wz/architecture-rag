@@ -77,3 +77,41 @@ FAISS потребует разработки и поддержки дополн
 Для выполнения задания выбрал описания 30+ персонажей из вселенной Star Wars.
 
 [replace_terms.py](replace_terms.py) - скрипт, который берет сырые тексты из папки row_texts (она в гитигноре, поэтому ее нет в репозитории) и заменяет в ней термы согласно [terms_map.json](terms_map.json). Результат кладется в [knowledge_base/](knowledge_base/).
+
+<br>
+<br>
+<br>
+
+# Задание 3
+Для эмбеддингов использовал [BAAI/bge-m3](https://huggingface.co/BAAI/bge-m3). Размерность векторов - 1024.
+
+- **Чанкинг:** `RecursiveCharacterTextSplitter` (LangChain), длина считается
+  **в токенах токенизатором BGE-M3**: `chunk_size = 500`, `chunk_overlap = 80`.
+  Разделители — от абзацев к предложениям и словам.
+- **Чанков в индексе:** **36**.
+- **Хранилище:** `langchain_chroma.Chroma`, persist [./chroma_db](chroma_db/),
+  коллекция `characters`.
+- **Время генерации эмбеддингов:** **~23 с** (36 чанков, CPU, BGE-M3).
+  Полное время сборки с учётом первой загрузки модели (~2.3 ГБ) — ~190 с;
+  при повторном запуске модель берётся из кэша.
+
+Все три шага (преобразование текста в чанки, генерация эмбеддингов, создание индекса) выполняются в одном скрипте [build_index.py](build_index.py). Инструкция по запуску и тестированию в [vector_index_сreating.md](vector_index_сreating.md).
+
+Пример запроса:
+```
+================================================================================
+ЗАПРОС: Кто воспитал осиротевшего воина Korin Valtaar?
+================================================================================
+
+[1] score=0.4352  | Korin Valtaar | knowledge_base/0.txt (chunk 0, chars 0–1201)
+    Korin Valtaar, also known as "the Korthan," or simply "Korr," was a human male Korthan warrior during the era of the New Accord. With his Korthan armor, RK-90 blaster pistol, Varran sniper rifle, and distinctive thoryn helmet, Valtaar was both well-equipped and enigmatic—a stranger whose past was shrouded in mystery to …
+
+[2] score=0.4034  | Korin Valtaar | knowledge_base/0.txt (chunk 1, chars 1203–2216)
+    In 9 ASR, Valtaar was hired on Velkris by a Dominion remnant faction to acquire a mysterious asset. The Korthan tracked the bounty to the world Hadron-7 and discovered that his quarry was a Vael-sensitive infant belonging to the same species as Skarn Grand Master Oneth. A paternal bond soon formed between Valtaar and t …
+
+[3] score=0.3440  | Korin Zushu | knowledge_base/1.txt (chunk 0, chars 0–1825)
+    Korin Zushu, known only as Zushu until being formally adopted by Korin Valtaar after the Liberation of Korthas, was a male Vael-sensitive Korthan belonging to the same mysterious species as the legendary Grand Master Oneth. Zushu was born around the year 41 BSR, and was raised at the Skarn Temple on Tellaris as a Skarn …
+
+[4] score=0.2775  | Joren Sunfall | knowledge_base/14.txt (chunk 1, chars 526–2019)
+    The son of Skarn Knight Aric Sunfall and Senator Sienna Andiva, Joren Sunfall was born along with his twin sister, Aria, in 19 BSR. As a result of Andiva's death and Aric's fall to the Umbral side of the Vael, the Sunfall children were separated and sent into hiding, with Aria adopted by the royal family of Elaris whil …
+```

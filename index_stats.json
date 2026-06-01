@@ -1,0 +1,12 @@
+{
+  "embedding_model": "BAAI/bge-m3",
+  "collection": "characters",
+  "persist_directory": "/home/admin/architecture-rag/chroma_db",
+  "n_documents": 31,
+  "n_chunks_built": 36,
+  "n_chunks_in_index": 36,
+  "chunk_size_tokens": 500,
+  "chunk_overlap_tokens": 80,
+  "embedding_time_sec": 23.37,
+  "total_time_sec": 189.55
+}
