@@ -2,3 +2,8 @@ clean_citations.py
 row_texts/
 .venv/
 __pycache__/
+
+# Секреты
+.env
+.env.*
+!.env.example

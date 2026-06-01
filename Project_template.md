@@ -115,3 +115,68 @@ FAISS потребует разработки и поддержки дополн
 [4] score=0.2775  | Joren Sunfall | knowledge_base/14.txt (chunk 1, chars 526–2019)
     The son of Skarn Knight Aric Sunfall and Senator Sienna Andiva, Joren Sunfall was born along with his twin sister, Aria, in 19 BSR. As a result of Andiva's death and Aric's fall to the Umbral side of the Vael, the Sunfall children were separated and sent into hiding, with Aria adopted by the royal family of Elaris whil …
 ```
+
+<br>
+<br>
+<br>
+
+# Задание 4
+[rag_bot.py](rag_bot.py) - простая реализация RAG-бота.
+
+**Пайплайн:**
+получает запрос пользователя -> превращает его в эмбеддинг -> ищет top-k похожих чанка в Chroma -> формирует промпт (system (CoT) + few-shot примеры + найденный контекст с префиксами-источниками + запрос пользователя) -> передает промпт в Llm -> возвращает ответ Llm с списком источников из метаданных.
+
+**Установка**: 
+1. установка зависимостей (см. раздел *Установка* в [vector_index_сreating.md](vector_index_сreating.md)).
+2. настройка url, model-id, api-key в переменных окружения. шаблон: [.env.example](.env.example).
+
+**Использование**:
+```bash
+.venv/bin/python rag_bot.py "Кто воспитал осиротевшего Korin Valtaar?"
+```
+<br>
+<br>
+<br>
+
+[app.py](app.py) - простой сервер переадресующий REST запросы в *rag_bot.py*
+
+**Установка**: 
+см. выше
+
+**Использование**:
+
+Поднять сервер:
+```bash
+.venv/bin/uvicorn app:app --host 0.0.0.0 --port 8000
+# Swagger UI: http://localhost:8000/docs
+```
+
+Запрос:
+```bash
+curl -s -X POST http://localhost:8000/ask \
+  -H "Content-Type: application/json" \
+  -d '{"query": "Какой дроид никогда не получал очистки памяти?", "k": 4}'
+```
+
+Остановка сервера:
+```bash
+# если сервер запущен в текущем терминале (foreground) — нажмите Ctrl+C
+
+# если сервер запущен в фоне:
+pkill -f "uvicorn app:app"
+# либо по порту:
+kill "$(lsof -t -i:8000)"        # требует lsof
+# либо найти PID и остановить вручную:
+pgrep -af "uvicorn app:app"      # посмотреть PID
+kill <PID>                       # graceful (SIGTERM); kill -9 <PID> — принудительно
+```
+<br>
+<br>
+<br>
+
+[test_examples.sh](test_examples.sh) - bash скрипт для тестирования на демо-наборе запросов (5 успешных + 2 «Я не знаю»).
+
+Результат работы test_examples.sh:
+![](screenshots/rag_test0.jpg)
+![](screenshots/rag_test1.jpg)
+![](screenshots/rag_test2.jpg)
